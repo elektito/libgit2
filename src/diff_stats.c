@@ -301,12 +301,34 @@ int git_diff_stats_to_buf(
 
 	if (format & GIT_DIFF_STATS_FULL || format & GIT_DIFF_STATS_SHORT) {
 		error = git_buf_printf(
-			out, " %" PRIuZ " file%s changed, %" PRIuZ
-			" insertion%s(+), %" PRIuZ " deletion%s(-)\n",
-			stats->files_changed, stats->files_changed != 1 ? "s" : "",
-			stats->insertions, stats->insertions != 1 ? "s" : "",
-			stats->deletions, stats->deletions != 1 ? "s" : "");
+			out, " %" PRIuZ " file%s changed",
+			stats->files_changed,
+			stats->files_changed != 1 ? "s" : "");
 
+		if (error < 0)
+			return error;
+
+		if (stats->insertions) {
+			error = git_buf_printf(
+				out, ", %" PRIuZ " insertion%s(+)",
+				stats->insertions,
+				stats->insertions != 1 ? "s" : "");
+
+			if (error < 0)
+                                return error;
+		}
+
+		if (stats->deletions) {
+			error = git_buf_printf(
+				out, ", %" PRIuZ " deletion%s(-)",
+				stats->deletions,
+				stats->deletions != 1 ? "s" : "");
+
+			if (error < 0)
+                                return error;
+		}
+
+		error = git_buf_printf(out, "\n");
 		if (error < 0)
 			return error;
 	}

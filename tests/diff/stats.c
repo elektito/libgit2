@@ -140,7 +140,7 @@ void test_diff_stats__rename_nochanges(void)
 	const char *stat =
 	" file2.txt.renamed => file2.txt.renamed2 | 0\n"
 	" file3.txt.renamed => file3.txt.renamed2 | 0\n"
-	" 2 files changed, 0 insertions(+), 0 deletions(-)\n";
+	" 2 files changed\n";
 
 	diff_stats_from_commit_oid(
 		&_stats, "3991dce9e71a0641ca49a6a4eea6c9e7ff402ed4", true);
@@ -244,7 +244,7 @@ void test_diff_stats__binary(void)
 	git_buf buf = GIT_BUF_INIT;
 	const char *stat =
 	" binary.bin | Bin 3 -> 0 bytes\n"
-	" 1 file changed, 0 insertions(+), 0 deletions(-)\n";
+	" 1 file changed\n";
 	/* TODO: Actually 0 bytes here should be 5!. Seems like we don't load the new content for binary files? */
 
 	diff_stats_from_commit_oid(
@@ -278,13 +278,29 @@ void test_diff_stats__mode_change(void)
 	git_buf buf = GIT_BUF_INIT;
 	const char *stat =
 	" file1.txt.renamed | 0\n" \
-	" 1 file changed, 0 insertions(+), 0 deletions(-)\n" \
+	" 1 file changed\n" \
 		" mode change 100644 => 100755 file1.txt.renamed\n";
 
 	diff_stats_from_commit_oid(
 		&_stats, "7ade76dd34bba4733cf9878079f9fd4a456a9189", false);
 
 	cl_git_pass(git_diff_stats_to_buf(&buf, _stats, GIT_DIFF_STATS_FULL | GIT_DIFF_STATS_INCLUDE_SUMMARY, 0));
+	cl_assert_equal_s(stat, git_buf_cstr(&buf));
+	git_buf_free(&buf);
+}
+
+void test_diff_stats__only_insertions(void)
+{
+	git_buf buf = GIT_BUF_INIT;
+	const char *stat =
+	" file2.txt | 5 +++++\n" \
+	" file3.txt | 5 +++++\n" \
+	" 2 files changed, 10 insertions(+)\n";
+
+	diff_stats_from_commit_oid(
+		&_stats, "10808fe9c9be5a190c0ba68d1a002233fb363508", false);
+
+	cl_git_pass(git_diff_stats_to_buf(&buf, _stats, GIT_DIFF_STATS_FULL, 0));
 	cl_assert_equal_s(stat, git_buf_cstr(&buf));
 	git_buf_free(&buf);
 }
